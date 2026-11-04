@@ -27,8 +27,10 @@
         type: 'PROMPT_GROUP_STATUS',
         data: {
           id: g.id, status: g.status, processedCount: g.processedCount, totalCount: g.totalCount, createdAt: g.createdAt,
-          isCancelling: !!g.isCancelling, isActive: activeGroupId === g.id,
-          results: g.results.map((r) => ({ index: r.index, promptIndex: r.promptIndex, success: r.success, downloadComplete: r.downloadComplete, error: r.error })),
+          isCancelling: !!g.isCancelling, isPaused: !!g.isPaused, isActive: activeGroupId === g.id,
+          results: g.results.map((r) => ({ index: r.index, promptIndex: r.promptIndex, success: r.success, downloadComplete: r.downloadComplete, error: r.error,
+            durationMs: g.doneAt[r.index] && g.startedAt[r.index] ? g.doneAt[r.index] - g.startedAt[r.index] : null })),
+          currentStartedAt: g.currentPromptIndex != null ? g.startedAt[g.currentPromptIndex] || null : null,
           currentPromptIndex: g.currentPromptIndex,
           promptPreviews: g.payloads.map((p) => String((p && p.prompt) || '').substring(0, 70)),
           promptIndices: g.payloads.map((p) => p.promptIndex),
@@ -57,6 +59,8 @@
   async function submitWorker(g) {
     for (;;) {
       if (g.isCancelling) return;
+      // Paused: finish what's running, but don't start another prompt until resumed
+      if (g.isPaused) { await wait(500); continue; }
       if (g.processedCount >= g.totalCount && g.pending.length === 0) return;
       // limit how many prompts generate at the same time
       if (downloadQueue.filter((d) => d.groupId === g.id).length >= g.concurrentPrompts) { await wait(500); continue; }
@@ -81,6 +85,7 @@
       try {
         const tries = g.retryCountByIndex[idx] || 0;
         g.currentPromptIndex = idx;
+        g.startedAt[idx] = Date.now();
         publish(g);
         A.log(`Prompt ${cfg.promptIndex}: starting`);
         const res = await A.uiLock.run(() => A.runPrompt(cfg, () => !!g.isCancelling));
@@ -98,6 +103,7 @@
           downloadQueue.push({ groupId: g.id, index: idx, tileRefs: res.tileRefs, config: cfg, retryCount: g.downloadRetryCountByIndex[idx] || 0 });
         } else {
           g.finishedIndexes.add(idx);
+          g.doneAt[idx] = Date.now();
         }
         g.processedCount += 1;
         publish(g);
@@ -117,12 +123,14 @@
     const r = g.results.find((x) => x.index === item.index);
     if (r) r.downloadComplete = true;
     g.finishedIndexes.add(item.index);
+    g.doneAt[item.index] = Date.now();
     publish(g);
   }
   function markDownloadFailed(item, g, err) {
     g.results = g.results.filter((x) => x.index !== item.index);
     g.results.push({ index: item.index, promptIndex: item.config.promptIndex, success: false, downloadComplete: true, error: err || 'Download failed' });
     g.finishedIndexes.add(item.index);
+    g.doneAt[item.index] = Date.now();
     publish(g);
   }
   function retryAfterFailedGeneration(item, g) {
@@ -225,7 +233,7 @@
       delayMin: msg.promptDelaySecondsMin || 0, delayMax: msg.promptDelaySecondsMax || 0,
       processedCount: 0, totalCount: payloads.length, isCancelling: false,
       results: [], pending: payloads.map((_, i) => i), finishedIndexes: new Set(),
-      retryCountByIndex: {}, downloadRetryCountByIndex: {}, reply: () => {}
+      retryCountByIndex: {}, downloadRetryCountByIndex: {}, startedAt: {}, doneAt: {}, isPaused: false, reply: () => {}
     };
     groups.push(g);
     publish(g);
@@ -240,6 +248,37 @@
     if (g.status === 'queued') { g.status = 'cancelled'; groups.splice(i, 1); publish(g); return { success: true, cancelled: true }; }
     if (g.status === 'running') { g.isCancelling = true; publish(g); A.log('Stopping...'); return { success: true, cancelling: true }; }
     return { success: false, error: 'Already finished' };
+  }
+
+  function setPaused(groupId, paused) {
+    const g = groups.find((x) => x.id === groupId);
+    if (!g || g.status !== 'running') return { success: false, error: 'Nothing running' };
+    g.isPaused = paused;
+    A.log(paused ? 'Paused: the current prompt finishes, then AutoFlow waits' : 'Resumed');
+    publish(g);
+    return { success: true, paused };
+  }
+
+  /* ---------- self-check: which Flow controls can AutoFlow find on this page? ---------- */
+  // Controls that should be visible on an open Flow project (others only exist inside menus)
+  const CORE_CONTROLS = {
+    promptTextarea: 'Prompt box',
+    submitButton: 'Generate button',
+    configButton: 'Prompt settings button',
+    addImageButton: 'Add image / ingredient button',
+    promptBoxContainer: 'Prompt area',
+    agentToggle: 'Agent toggle',
+    charactersTabButton: 'Characters section'
+  };
+  function selfCheck() {
+    const sel = A.selectors || {};
+    const rows = Object.entries(CORE_CONTROLS).map(([key, label]) => {
+      let found = 0;
+      try { found = A.q(sel[key]).filter((_, el) => A.isVisibleEl(el)).length; } catch (e) {}
+      return { key, label, found };
+    });
+    const menuKeys = Object.keys(sel).filter((k) => !CORE_CONTROLS[k] && !/Template$/.test(k)).length;
+    return { onFlow: A.isFlowPage(), url: location.href, rows, menuKeys };
   }
 
   /* ---------- messages from the side panel ---------- */
@@ -272,6 +311,15 @@
         reply({ success: true, groupId: id });
         return false;
       }
+      case 'PAUSE_PROMPT_GROUP':
+        reply(setPaused(msg.groupId, true));
+        return false;
+      case 'RESUME_PROMPT_GROUP':
+        reply(setPaused(msg.groupId, false));
+        return false;
+      case 'SELF_CHECK':
+        A.loadSelectors().then(() => reply(selfCheck())).catch((e) => reply({ error: String(e) }));
+        return true;
       case 'CANCEL_PROMPT_GROUP':
         reply(cancel(msg.groupId));
         return false;

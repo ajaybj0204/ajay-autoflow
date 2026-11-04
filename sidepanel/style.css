@@ -224,3 +224,17 @@ textarea { resize: vertical; min-height: 60px; }
 .brand-feedback { margin: 0 0 9px !important; }
 .brand-feedback.good { color: var(--ok); }
 .brand-feedback.bad { color: var(--err); }
+
+/* ---------- v1.4 additions ---------- */
+.resume-card { border-color: var(--red2); background: linear-gradient(180deg, var(--card2), var(--card)); }
+.import-box { display: grid; gap: 8px; margin: 10px 0; padding: 10px; border: 1px dashed var(--line2); border-radius: 10px; }
+.import-box textarea { min-height: 110px; font-family: ui-monospace, Consolas, monospace; font-size: 11px; }
+.report { margin: 8px 0; max-height: 260px; overflow: auto; }
+.report table { width: 100%; border-collapse: collapse; font-size: 11px; }
+.report th, .report td { text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.report th { color: var(--muted); font-weight: 600; position: sticky; top: 0; background: var(--card); }
+.report td:nth-child(2) { max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.report tr.done td:nth-child(3) { color: var(--ok); }
+.report tr.failed td:nth-child(3) { color: var(--err); }
+.report tr.not-run td { color: var(--muted); }
+#queueEta { margin-top: 4px; }

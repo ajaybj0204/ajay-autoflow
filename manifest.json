@@ -3,7 +3,7 @@
   "name": "Ajay AutoFlow",
   "short_name": "Ajay Flow",
   "description": "Batch-run Google Flow prompts: queue images and videos, pick characters and voices, and save every clip with a clean, timecoded filename.",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "action": {
     "default_title": "Ajay AutoFlow",
     "default_icon": {
@@ -31,7 +31,8 @@
     "sidePanel",
     "activeTab",
     "downloads",
-    "debugger"
+    "debugger",
+    "notifications"
   ],
   "host_permissions": [
     "*://flow.google.com/*",

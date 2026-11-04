@@ -24,6 +24,21 @@ the file. AutoFlow does that loop for me so I can spend the time on the story in
 - **Smart file names:** start a prompt with `#0:04` and the clip saves as `0-04.mp4`
   (two outputs → `0-04_1.mp4`, `0-04_2.mp4`), into a folder you choose
 - **Download quality:** 720p / 1080p / 4K for videos, 1K / 2K / 4K for images
+- **Per-prompt settings:** start a prompt with `voice: Puck`, `model: Veo 3.1 - Fast` or
+  `ratio: 9:16` to change just that prompt
+- **Scene import + templates:** paste a table from Google Sheets or a CSV (`tag`, `prompt`,
+  `character`, `voice`, `model`, `ratio`, or any column) and optionally fill a template like
+  `{character} {action}, cinematic, 9:16`
+- **Pause, resume and crash recovery:** pause after the current prompt; if Chrome or Flow
+  closes mid-batch, AutoFlow offers to continue from where it stopped
+- **Run report:** done / failed / time for every prompt, **Retry failed only**, and a CSV shot
+  list for your editor
+- **Time left:** live estimate from how long your prompts actually take
+- **Saved projects:** keep prompt sets with their settings; each project gets its own sub-folder
+- **Caption files:** optional `.txt` next to each clip with the prompt that made it
+- **Done alert:** desktop notification and a chime when a batch finishes
+- **Self-check:** after a Flow update, see which controls AutoFlow can still find
+- **English or Hinglish** panel
 - **Survives Flow redesigns:** controls are found by text, labels and icons, with custom
   selectors and a Logs tab when something changes
 - **Private:** no servers, no tracking. It only talks to Google Flow in your own browser
@@ -57,6 +72,10 @@ keeps Google's watermarks and SynthID. Follow Google Flow's terms and usage limi
 
 ## Changelog
 
+- **1.4.0:** Pause/resume with crash recovery, scene import from Sheets/CSV with templates,
+  per-prompt voice/model/ratio, run report with retry-failed and CSV shot list, time-left
+  estimate, saved projects with sub-folders, caption files, done notification, self-check,
+  Hinglish panel.
 - **1.3.0:** Cleaner build: removed the optional video corner editor; new README.
 - **1.2.1:** Fixed a prompt-typing error after Flow redraws its editor; no longer picks an
   unrelated character when `@Name` isn't found.

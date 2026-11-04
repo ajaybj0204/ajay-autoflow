@@ -45,6 +45,35 @@
 
     <!-- ================= CONTROL ================= -->
     <section id="tab-control" class="tab-panel active">
+      <!-- unfinished run found after a crash / closed browser -->
+      <div class="card resume-card hidden" id="resumeCard">
+        <div class="card-title" data-i18n="resumeTitle">Unfinished run found</div>
+        <p class="hint" id="resumeText"></p>
+        <div class="row-gap">
+          <button class="btn tiny primary" id="resumeRunBtn" data-i18n="resumeBtn">Resume where it stopped</button>
+          <button class="btn tiny ghost" id="discardRunBtn" data-i18n="discardBtn">Discard</button>
+        </div>
+      </div>
+
+      <!-- saved projects -->
+      <div class="card">
+        <div class="card-title" data-i18n="projectsTitle">Project</div>
+        <div class="grid2">
+          <label class="field"><span data-i18n="projectLoad">Saved projects</span>
+            <select id="projectSelect"><option value="">— none —</option></select>
+          </label>
+          <label class="field"><span data-i18n="projectName">Project name</span>
+            <input type="text" id="projectName" maxlength="60" placeholder="e.g. Episode 3" />
+          </label>
+        </div>
+        <div class="row-gap">
+          <button class="btn tiny ghost" id="projectSaveBtn" data-i18n="projectSave">Save prompts + settings</button>
+          <button class="btn tiny ghost" id="projectLoadBtn" data-i18n="projectLoadBtn">Load</button>
+          <button class="btn tiny ghost" id="projectDeleteBtn" data-i18n="projectDelete">Delete</button>
+        </div>
+        <p class="hint" id="projectHint" data-i18n="projectHint">Files of this project go into their own sub-folder (Settings → Auto download).</p>
+      </div>
+
       <div class="card">
         <div class="card-title">Mode</div>
         <div class="modes" id="modes">
@@ -168,8 +197,12 @@
       <div class="card">
         <div class="card-title">Prompts <span class="muted" id="promptCount">0</span></div>
         <textarea id="prompts" rows="8" placeholder="Prompt 1...&#10;&#10;Prompt 2...&#10;&#10;(Leave one empty line between prompts. Start a prompt with #name to name the file.)"></textarea>
+        <p class="hint" data-i18n="metaHint">Tip: the first lines of a prompt can set <b>voice: Puck</b>, <b>model: Veo 3.1 - Fast</b> or <b>ratio: 9:16</b> just for that prompt.</p>
         <div class="row-between">
-          <label class="file-btn">Import .txt<input type="file" id="txtInput" accept=".txt,text/plain" /></label>
+          <div class="row-gap">
+            <label class="file-btn">Import .txt<input type="file" id="txtInput" accept=".txt,text/plain" /></label>
+            <button class="btn tiny ghost" id="openImportBtn" data-i18n="importScenes">Import scenes (CSV / Sheets)</button>
+          </div>
           <div class="range">
             <span>Run</span>
             <input type="number" id="rangeFrom" min="1" value="1" />
@@ -177,11 +210,29 @@
             <input type="number" id="rangeTo" min="1" value="1" />
           </div>
         </div>
+        <!-- scene import -->
+        <div class="import-box hidden" id="importBox">
+          <p class="hint" data-i18n="importHint">Paste a table from Google Sheets or a CSV. First row = column names. Known columns: <b>tag</b> (or timecode), <b>prompt</b>, <b>character</b>, <b>voice</b>, <b>model</b>, <b>ratio</b>. Any other column can be used in the template as {column}.</p>
+          <textarea id="importText" rows="6" placeholder="tag	prompt	character	voice&#10;0:00	Wide shot of a busy Bengaluru street at dawn	Ravi	Puck&#10;0:08	Ravi buys filter coffee and smiles	Ravi	Puck"></textarea>
+          <label class="field"><span data-i18n="templateLabel">Template (optional)</span>
+            <input type="text" id="importTemplate" placeholder="{character} {action}, cinematic, warm light, 9:16" />
+          </label>
+          <div class="row-between">
+            <label class="file-btn">Open .csv<input type="file" id="csvInput" accept=".csv,.tsv,text/csv,text/plain" /></label>
+            <span class="muted small" id="importPreview"></span>
+          </div>
+          <div class="row-gap">
+            <button class="btn tiny primary" id="importReplaceBtn" data-i18n="importReplace">Replace prompts</button>
+            <button class="btn tiny ghost" id="importAppendBtn" data-i18n="importAppend">Add to the end</button>
+            <button class="btn tiny ghost" id="importCloseBtn" data-i18n="close">Close</button>
+          </div>
+        </div>
         <div class="prompt-list" id="promptList"></div>
       </div>
 
       <div class="actions">
         <button class="btn primary" id="startBtn">Start AutoFlow</button>
+        <button class="btn ghost hidden" id="pauseBtn">Pause</button>
         <button class="btn danger hidden" id="stopBtn">Stop</button>
         <button class="btn ghost" id="clearBtn">Clear</button>
       </div>
@@ -193,6 +244,19 @@
           <div class="row-between small"><span id="queueStatus">-</span><span id="queueCount">0/0</span></div>
           <div class="bar"><i id="queueBar"></i></div>
           <div class="row-between small"><span id="currentLine" class="muted">-</span><span id="currentPct" class="muted"></span></div>
+          <div class="small muted" id="queueEta"></div>
+        </div>
+      </div>
+
+      <!-- run report -->
+      <div class="card hidden" id="reportCard">
+        <div class="card-title" data-i18n="reportTitle">Run report</div>
+        <div class="small" id="reportSummary"></div>
+        <div class="report" id="reportTable"></div>
+        <div class="row-gap">
+          <button class="btn tiny primary hidden" id="retryFailedBtn" data-i18n="retryFailed">Retry failed only</button>
+          <button class="btn tiny ghost" id="exportReportBtn" data-i18n="exportCsv">Export shot list (CSV)</button>
+          <button class="btn tiny ghost" id="saveCaptionsBtn" data-i18n="saveCaptions">Save caption files</button>
         </div>
       </div>
     </section>
@@ -251,8 +315,45 @@
             </select>
           </label>
         </div>
+        <div class="grid2">
+          <div class="field toggle-field"><span data-i18n="subfolderSetting">Sub-folder per project</span>
+            <label class="switch"><input type="checkbox" data-setting="projectSubfolder" /><i></i></label>
+          </div>
+          <div class="field toggle-field"><span data-i18n="captionSetting">Caption .txt with each clip</span>
+            <label class="switch"><input type="checkbox" data-setting="writeCaptions" /><i></i></label>
+          </div>
+        </div>
         <p class="hint">Files go into Downloads/&lt;folder&gt;. Turn OFF "Ask where to save each file" in Chrome so downloads run automatically.</p>
         <button class="btn tiny ghost" id="openDlSettings">Open Chrome download settings</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="alertsTitle">When a batch finishes</div>
+        <div class="grid2">
+          <div class="field toggle-field"><span data-i18n="notifySetting">Desktop notification</span>
+            <label class="switch"><input type="checkbox" data-setting="notifyOnDone" /><i></i></label>
+          </div>
+          <div class="field toggle-field"><span data-i18n="soundSetting">Play a sound</span>
+            <label class="switch"><input type="checkbox" data-setting="notifySound" /><i></i></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="languageTitle">Language</div>
+        <label class="field"><span data-i18n="languageLabel">Panel language</span>
+          <select data-setting="uiLang">
+            <option value="en">English</option>
+            <option value="hi">Hinglish (Roman Hindi)</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="card">
+        <div class="card-title" data-i18n="selfCheckTitle">Self-check</div>
+        <p class="hint" data-i18n="selfCheckHint">After a Google Flow update, check which buttons AutoFlow can still find. Open a Flow project first.</p>
+        <button class="btn tiny ghost" id="selfCheckBtn" data-i18n="selfCheckBtn">Check Flow page</button>
+        <div class="report" id="selfCheckResult"></div>
       </div>
 
       <div class="card">
@@ -290,5 +391,6 @@
 
   <div id="toast" class="toast hidden"></div>
   <script src="app.js"></script>
+  <script src="extras.js"></script>
 </body>
 </html>

@@ -39,7 +39,13 @@ const DEFAULTS = {
   folderName: 'ajay-autoflow',
   socialYouTubeUrl: 'https://www.youtube.com/@ExploreX-00',
   socialFacebookUrl: '',
-  zoomOutWhileRunning: true
+  zoomOutWhileRunning: true,
+  projectSubfolder: true,
+  writeCaptions: false,
+  notifyOnDone: true,
+  notifySound: true,
+  uiLang: 'en',
+  currentProject: ''
 };
 
 const IMAGE_MODELS = ['Nano Banana Pro', 'Nano Banana 2.1', 'Nano Banana 2.1 Light'];
@@ -243,6 +249,30 @@ function refreshUI() {
 
 /* ---------------- prompts logic ---------------- */
 const parsePrompts = (t) => (t ? t.split(/\n\s*\n/).map((x) => x.trim()).filter(Boolean) : []);
+
+/* Optional settings lines at the top of a prompt (removed before typing into Flow):
+ *   voice: Puck      model: Veo 3.1 - Fast      ratio: 9:16 */
+const META_KEYS = { voice: 'voice', speaker: 'voice', model: 'model', ratio: 'aspect', aspect: 'aspect' };
+const RATIO_ALIASES = { '16:9': '16:9', '9:16': '9:16', square: 'square', '1:1': 'square', portrait: 'portrait', landscape: 'landscape' };
+function promptParts(block) {
+  const meta = {};
+  const lines = String(block).split(/\r?\n/);
+  while (lines.length > 1) {
+    const m = lines[0].match(/^\s*(voice|speaker|model|ratio|aspect)\s*:\s*(.+?)\s*$/i);
+    if (!m) break;
+    const key = META_KEYS[m[1].toLowerCase()];
+    let val = m[2];
+    if (key === 'aspect') val = RATIO_ALIASES[val.toLowerCase()] || null;
+    if (key === 'model') {
+      const all = IMAGE_MODELS.concat(VIDEO_MODELS);
+      val = all.find((x) => x.toLowerCase() === val.toLowerCase()) || all.find((x) => x.toLowerCase().includes(val.toLowerCase())) || null;
+    }
+    if (key === 'voice') val = (VOICES.find(([n]) => n.toLowerCase() === val.toLowerCase()) || [val])[0];
+    if (val) meta[key] = val;
+    lines.shift();
+  }
+  return { text: lines.join('\n').trim(), meta };
+}
 function promptOption(i, total) {
   const def = isVideoMode() ? settings.defaultVideoOption : settings.defaultImageOption;
   if (total > 0 && i === total - 1 && def.includes('-concat')) return def.split('-concat')[0];
@@ -321,7 +351,8 @@ function renderPrompts() {
   const per = imagesPerPrompt(prompts);
   const list = $('#promptList');
   list.innerHTML = '';
-  prompts.forEach((p, i) => {
+  prompts.forEach((raw, i) => {
+    const { text: p, meta } = promptParts(raw);
     const row = document.createElement('div');
     row.className = 'p-row';
     row.dataset.idx = String(i + 1);
@@ -329,8 +360,11 @@ function renderPrompts() {
     if (info.images && per[i] && per[i].length) tags.push(`<span class="tag img">${per[i].length} img: ${per[i].map((x) => escapeHtml(stem(x.name))).join(', ')}</span>`);
     if (info.images && !info.optionalImages && !isAfterConcat(i, prompts.length) && (!per[i] || !per[i].length)) tags.push('<span class="tag err">no image</span>');
     if (isAfterConcat(i, prompts.length)) tags.push('<span class="tag chain">uses previous result</span>');
-    if (info.voice && (settings.mode !== 'agentAutomation' || isVideoMode())) { const sp = speakerFor(p); if (sp) tags.push(`<span class="tag voice">voice: ${sp}</span>`); }
+    if (!meta.voice && info.voice && (settings.mode !== 'agentAutomation' || isVideoMode())) { const sp = speakerFor(p); if (sp) tags.push(`<span class="tag voice">voice: ${sp}</span>`); }
     const ch = charactersFor(p); if (ch) tags.push(`<span class="tag char">@${ch.map(escapeHtml).join(', @')}</span>`);
+    if (meta.voice) tags.push(`<span class="tag voice">voice: ${escapeHtml(meta.voice)}</span>`);
+    if (meta.model) tags.push(`<span class="tag">${escapeHtml(meta.model)}</span>`);
+    if (meta.aspect) tags.push(`<span class="tag">${escapeHtml(meta.aspect)}</span>`);
     row.innerHTML = `<div class="p-num">${i + 1}</div><div class="p-body"><div class="p-text" title="${escapeHtml(p)}">${escapeHtml(p)}</div><div class="p-meta">${tags.join('')}</div></div>`;
     list.appendChild(row);
   });
@@ -434,7 +468,7 @@ async function sendImages(tabId, list) {
   }
 }
 
-async function start() {
+async function start(opts = {}) {
   const prompts = parsePrompts($('#prompts').value);
   if (!prompts.length) return toast('Add at least one prompt first.', true);
   const tab = await getActiveTab();
@@ -455,15 +489,16 @@ async function start() {
 
   const outputCount = anyConcat ? 1 : Number(settings.mode === 'agentAutomation' ? settings.agentOutputCount : settings.outputCount);
   const concurrent = anyConcat || settings.mode === 'agentAutomation' ? 1 : Number(settings.concurrentPrompts);
-  const payloads = prompts.map((p, i) => ({
+  const folder = window.afHooks && afHooks.folderFor ? afHooks.folderFor(settings.folderName) : settings.folderName;
+  const payloads = prompts.map((raw, i) => { const { text: p, meta } = promptParts(raw); return {
     prompt: p,
     mode,
     images: info.images ? per[i] : [],
-    speaker: info.voice && (settings.mode !== 'agentAutomation' || video) ? speakerFor(p) : null,
+    speaker: info.voice && (settings.mode !== 'agentAutomation' || video) ? (meta.voice || speakerFor(p)) : null,
     characters: charactersFor(p),
-    aspectRatio: settings.aspectRatio,
+    aspectRatio: meta.aspect || settings.aspectRatio,
     outputCount,
-    model: video ? settings.model : settings.imageModel,
+    model: meta.model && (video ? VIDEO_MODELS : IMAGE_MODELS).includes(meta.model) ? meta.model : (video ? settings.model : settings.imageModel),
     videoOption: video ? promptOption(i, total) : undefined,
     promptIndex: i + 1,
     autoDownloadResourceQuality: video ? settings.autoDownloadVideoQuality : settings.autoDownloadImageQuality,
@@ -471,13 +506,20 @@ async function start() {
     maxRetries: Number(settings.maxRetries),
     autoChangeFileName: !!settings.autoChangeFileName,
     fileNamingSystem: settings.fileNamingSystem || 'prompt_tag',
-    folderName: settings.folderName
-  }));
+    folderName: folder
+  }; });
 
-  const from = Math.max(1, Number($('#rangeFrom').value) || 1);
-  const to = Math.min(total, Number($('#rangeTo').value) || total);
-  if (from > to) return toast('Range is wrong: "Run from" must be smaller than "to".', true);
-  const slice = payloads.slice(from - 1, to);
+  let slice;
+  if (Array.isArray(opts.onlyIndices) && opts.onlyIndices.length) {
+    // resume / retry: only these prompt numbers (1-based)
+    slice = payloads.filter((p) => opts.onlyIndices.includes(p.promptIndex));
+    if (!slice.length) return toast('Those prompts are no longer in the list.', true);
+  } else {
+    const from = Math.max(1, Number($('#rangeFrom').value) || 1);
+    const to = Math.min(total, Number($('#rangeTo').value) || total);
+    if (from > to) return toast('Range is wrong: "Run from" must be smaller than "to".', true);
+    slice = payloads.slice(from - 1, to);
+  }
 
   // send images once, refer to them by id
   const used = new Map();
@@ -498,9 +540,11 @@ async function start() {
     if (!res || !res.success) throw new Error((res && res.error) || 'Could not start');
     activeGroupId = res.groupId || groupId;
     lastStatus = null;
+    if (window.afHooks) afHooks.onStart({ groupId: activeGroupId, tabId: tab.id, prompts, payloads: slice, folder });
     $$('.p-row').forEach((r) => r.classList.remove('done', 'fail', 'running'));
     toast(`Started ${finalPayloads.length} prompt(s). Keep the Flow tab open.`);
     $('#stopBtn').classList.remove('hidden');
+    $('#pauseBtn').classList.remove('hidden');
   } catch (e) {
     toast(e.message || String(e), true);
   } finally {
@@ -542,17 +586,21 @@ function onGroupStatus(d) {
   const pct = d.totalCount ? Math.round((done / d.totalCount) * 100) : 0;
   $('#queueBar').style.width = pct + '%';
   $('#queueCount').textContent = `${done}/${d.totalCount} prompts`;
-  const labels = { queued: 'Queued', running: d.isCancelling ? 'Stopping...' : 'Running', completed: 'Completed', cancelled: 'Stopped', error: 'Error' };
+  const labels = { queued: 'Queued', running: d.isCancelling ? 'Stopping...' : d.isPaused ? 'Paused' : 'Running', completed: 'Completed', cancelled: 'Stopped', error: 'Error' };
   $('#queueStatus').textContent = labels[d.status] || d.status;
   if (d.currentPromptIndex != null && d.promptPreviews) $('#currentLine').textContent = `Now: #${d.promptIndices[d.currentPromptIndex]} ${d.promptPreviews[d.currentPromptIndex]}`;
   const finished = ['completed', 'cancelled', 'error'].includes(d.status);
   $('#stopBtn').classList.toggle('hidden', finished);
+  $('#pauseBtn').classList.toggle('hidden', finished);
+  $('#pauseBtn').textContent = d.isPaused ? 'Resume' : 'Pause';
+  $('#pauseBtn').dataset.paused = d.isPaused ? '1' : '';
   if (finished) {
     $('#currentLine').textContent = d.status === 'completed' ? `Done: ${(d.results || []).filter((r) => r.success).length} OK, ${(d.results || []).filter((r) => !r.success).length} failed` : '-';
     $('#currentPct').textContent = '';
     if (d.status === 'completed') toast('All prompts finished.');
   }
   applyStatusToRows(d);
+  if (window.afHooks) afHooks.onStatus(d);
 }
 
 /* ---------------- logs ---------------- */
@@ -645,6 +693,15 @@ function wire() {
 
   $('#startBtn').addEventListener('click', start);
   $('#stopBtn').addEventListener('click', stop);
+  $('#pauseBtn').addEventListener('click', async () => {
+    if (!activeGroupId) return;
+    const tab = await getActiveTab();
+    const tabId = (tab && isFlowUrl(tab.url)) ? tab.id : flowTabId;
+    if (!tabId) return toast('Flow tab not found', true);
+    const resume = $('#pauseBtn').dataset.paused === '1';
+    try { await sendToTab(tabId, { type: resume ? 'RESUME_PROMPT_GROUP' : 'PAUSE_PROMPT_GROUP', groupId: activeGroupId }); toast(resume ? 'Resumed' : 'Pausing after the current prompt...'); }
+    catch (e) { toast(e.message, true); }
+  });
   $('#clearBtn').addEventListener('click', () => { $('#prompts').value = ''; saveForm(); renderPrompts(); });
 
   $('#openFlowBtn').addEventListener('click', async (e) => {
@@ -694,4 +751,6 @@ function wire() {
   bindSettings();
   refreshUI();
   checkPage();
+  window.__afReady = true;
+  window.dispatchEvent(new Event('af-ready'));
 })();
