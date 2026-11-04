@@ -257,7 +257,8 @@ async function resumeRun() {
 
 /* ---------------- scene import (CSV / Google Sheets) + templates ---------------- */
 function parseTable(text) {
-  const src = String(text || '').replace(/\r\n?/g, '\n').trim();
+  // strip the BOM that Excel and our own CSV exports put at the start
+  const src = String(text || '').replace(/^﻿/, '').replace(/\r\n?/g, '\n').trim();
   if (!src) return [];
   const delim = src.split('\n')[0].includes('\t') ? '\t' : ',';
   const rows = []; let row = []; let cell = ''; let q = false;

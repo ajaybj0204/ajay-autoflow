@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ajay AutoFlow: batch-run Google Flow prompts</title>
+  <meta name="description" content="A free Chrome extension that runs your Google Flow prompts one after another and saves every clip with a clean, timecoded file name." />
+  <meta name="theme-color" content="#0c0305" />
+  <link rel="icon" href="assets/icon128.png" />
+  <meta property="og:title" content="Ajay AutoFlow" />
+  <meta property="og:description" content="Paste your storyboard once. AutoFlow generates every scene in Google Flow and saves the files in order." />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/icon128.png" alt="" />Ajay <span>AutoFlow</span></a>
+      <div class="nav-links">
+        <a href="#features" class="hide-sm">Features</a>
+        <a href="#install" class="hide-sm">Install</a>
+        <a href="planner.html">Storyboard planner</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <div class="wrap hero">
+      <div>
+        <span class="eyebrow"><i></i> Free Chrome extension for Google Flow</span>
+        <h1>Paste your storyboard once. <em>Get every scene, in order.</em></h1>
+        <p class="lead">AutoFlow runs your prompts in Google Flow one after another, picks the right character and voice, and saves each clip with a timecoded name, ready for your editor.</p>
+        <div class="cta">
+          <a class="btn primary" href="downloads/ajay-autoflow.zip" download>Download for Chrome</a>
+          <a class="btn" href="planner.html">Plan a storyboard</a>
+        </div>
+        <p class="note">Works in your own signed-in Chrome. No accounts, no servers, no tracking.</p>
+      </div>
+      <div class="mock" aria-label="Example of the AutoFlow side panel">
+        <div class="mock-head"><img src="assets/icon128.png" alt="" /><div><b>Ajay AutoFlow</b><small>Episode 3 · 6 scenes · Veo 3.1 Fast</small></div></div>
+        <div class="mock-row done"><span class="n">1</span><div>#0:00 Wide shot of a Bengaluru street at dawn<div class="tags"><span class="tag">9:16</span><span class="tag">saved 0-00.mp4</span></div></div></div>
+        <div class="mock-row done"><span class="n">2</span><div>#0:08 @Ravi buys filter coffee and smiles<div class="tags"><span class="tag">@Ravi</span><span class="tag">voice: Puck</span><span class="tag">saved 0-08.mp4</span></div></div></div>
+        <div class="mock-row run"><span class="n">3</span><div>#0:16 @Ravi checks his phone, rain begins<div class="tags"><span class="tag">@Ravi</span><span class="tag">generating…</span></div></div></div>
+        <div class="bar"><i></i></div>
+        <div class="mock-foot"><span>2 of 6 done</span><span>≈ 6 min left</span></div>
+      </div>
+    </div>
+
+    <section>
+      <div class="wrap">
+        <h2>Why I built it</h2>
+        <p class="sub">One AI video in Flow can mean 30+ scenes. Every scene was the same routine, so I automated the routine and kept the creative part.</p>
+        <div class="problem">
+          <div class="card">
+            <h3>Before: per scene, by hand</h3>
+            <ol>
+              <li>Paste the prompt</li>
+              <li>Pick the character and the voice</li>
+              <li>Choose model, ratio and length</li>
+              <li>Click Generate and wait</li>
+              <li>Download, then rename the file to its timecode</li>
+            </ol>
+            <p style="margin-top:10px">× 30 scenes, with mistakes when the files get out of order.</p>
+          </div>
+          <div class="card after">
+            <h3>With AutoFlow</h3>
+            <p>Paste or import all scenes, press <b>Start</b>, come back to a folder of clips named <code>0-00.mp4</code>, <code>0-08.mp4</code>, <code>0-16.mp4</code>… plus a report of anything that needs a retry.</p>
+            <p class="big" style="margin-top:14px">1 click</p>
+            <p>instead of ~150 clicks for a 30-scene video</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="features">
+      <div class="wrap">
+        <h2>What it does</h2>
+        <p class="sub">Built for creators who make long videos and image series in Google Flow.</p>
+        <div class="grid">
+          <div class="card"><div class="ico">🎬</div><h3>Prompt queue</h3><p>Text to video, frames to video, ingredients, text to image and image editing, with Veo 3.1, Omni and Nano Banana models.</p></div>
+          <div class="card"><div class="ico">📋</div><h3>Import from Sheets</h3><p>Paste a table with tag, prompt, character and voice columns. Templates like <code>{character} {action}, cinematic</code> fill the rest.</p></div>
+          <div class="card"><div class="ico">🗂️</div><h3>Files in order</h3><p>Start a prompt with <code>#0:04</code> and the clip saves as <code>0-04.mp4</code>, in a folder per project, with an optional caption file.</p></div>
+          <div class="card"><div class="ico">🎭</div><h3>Characters & voices</h3><p>Picks <code>@Character</code> and the voice by name. Set a voice, model or ratio for just one prompt with a short line on top.</p></div>
+          <div class="card"><div class="ico">⏯️</div><h3>Pause, resume, recover</h3><p>Pause after the current scene. If Chrome closes mid-batch, continue from where it stopped instead of starting over.</p></div>
+          <div class="card"><div class="ico">📊</div><h3>Run report</h3><p>Done, failed and time per scene, “Retry failed only”, and a CSV shot list for your editor. Live time-left estimate while it runs.</p></div>
+          <div class="card"><div class="ico">🔔</div><h3>Walk away</h3><p>A desktop notification and a chime when the batch is finished.</p></div>
+          <div class="card"><div class="ico">🩺</div><h3>Self-check</h3><p>After a Flow update, one button shows which controls AutoFlow can still find, and where to fix them.</p></div>
+          <div class="card"><div class="ico">🇮🇳</div><h3>English or Hinglish</h3><p>Switch the panel to Hinglish (Roman Hindi) in Settings.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="wrap">
+        <h2>Install in 2 minutes</h2>
+        <p class="sub">AutoFlow isn't on the Chrome Web Store yet, so it's installed from the ZIP.</p>
+        <ol class="steps">
+          <li><a href="downloads/ajay-autoflow.zip" download>Download the ZIP</a> and unzip it (right-click → Extract All).</li>
+          <li>Open <code>chrome://extensions</code> and turn on <b>Developer mode</b> (top right).</li>
+          <li>Click <b>Load unpacked</b> and choose the folder that contains <code>manifest.json</code>.</li>
+          <li>Pin <b>Ajay AutoFlow</b> from the puzzle-piece menu, open <a href="https://flow.google.com" target="_blank" rel="noopener">flow.google.com</a> and click the icon.</li>
+          <li>In Chrome Settings → Downloads, turn off “Ask where to save each file”, then paste your prompts and press <b>Start</b>.</li>
+        </ol>
+        <p class="note">While it runs, Chrome shows “started debugging this browser”. That's how the extension clicks and types for you inside your own tab.</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="wrap">
+        <div class="callout">
+          <b>Responsible use.</b> AutoFlow only does what you could do by hand in your own Flow account. Your videos keep Google's watermarks and SynthID, and Google Flow's terms and usage limits still apply.
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Built by <b>Ajay B J</b> · <a href="https://ajay-bj-portfolio.netlify.app" target="_blank" rel="noopener">Portfolio</a> · <a href="https://www.youtube.com/@ExploreX-00" target="_blank" rel="noopener">YouTube</a></span>
+      <span>Not affiliated with Google. Google Flow is a Google product.</span>
+    </div>
+  </footer>
+</body>
+</html>

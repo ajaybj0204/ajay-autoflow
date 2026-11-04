@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Storyboard planner · Ajay AutoFlow</title>
+  <meta name="description" content="Plan your Google Flow scenes in a table and export them straight into the AutoFlow extension." />
+  <meta name="theme-color" content="#0c0305" />
+  <link rel="icon" href="assets/icon128.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="nav">
+    <div class="wrap">
+      <a class="brand" href="./"><img src="assets/icon128.png" alt="" />Ajay <span>AutoFlow</span></a>
+      <div class="nav-links">
+        <a href="./#features" class="hide-sm">Features</a>
+        <a href="./#install" class="hide-sm">Install</a>
+        <a href="planner.html" class="active">Storyboard planner</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap">
+    <div class="planner-head">
+      <div>
+        <h1>Storyboard planner</h1>
+        <p class="sub" style="margin:0">Plan your scenes anywhere, even on your phone. Then export them into AutoFlow. Everything stays in this browser.</p>
+      </div>
+      <div class="toolbar">
+        <button class="btn small" id="addRow">+ Add scene</button>
+        <button class="btn small" id="sample">Load example</button>
+        <button class="btn small" id="clearAll">Clear</button>
+      </div>
+    </div>
+
+    <div class="settings-row">
+      <label class="field">Template (optional): use {prompt}, {character} or any column name
+        <input id="template" placeholder="{prompt}, cinematic, warm light, shallow depth of field" />
+      </label>
+      <label class="field">Model for every scene (optional)
+        <select id="model">
+          <option value="">Use AutoFlow's setting</option>
+          <option>Veo 3.1 - Lite</option><option>Veo 3.1 - Fast</option><option>Veo 3.1 - Quality</option><option>Omni 1.1 Flash</option>
+          <option>Nano Banana Pro</option><option>Nano Banana 2.1</option><option>Nano Banana 2.1 Light</option>
+        </select>
+      </label>
+      <label class="field">Ratio for every scene (optional)
+        <select id="ratio">
+          <option value="">Use AutoFlow's setting</option><option>16:9</option><option>9:16</option><option>square</option><option>portrait</option><option>landscape</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="scene-labels"><span>#</span><span>Timecode</span><span>What happens</span><span>Character</span><span>Voice</span><span></span></div>
+    <div class="scenes" id="scenes"></div>
+
+    <div class="two">
+      <div>
+        <h2 style="font-size:24px">Send to AutoFlow</h2>
+        <p class="sub" style="margin-bottom:14px">Either download the CSV and use <b>Import scenes → Open .csv</b> in the extension, or copy the prompts and paste them into the Prompts box.</p>
+        <div class="toolbar">
+          <button class="btn primary small" id="downloadCsv">Download CSV</button>
+          <button class="btn small" id="copyPrompts">Copy prompts</button>
+          <button class="btn small" id="copyTable">Copy as table (for Sheets)</button>
+        </div>
+        <p class="note" id="stats"></p>
+      </div>
+      <div>
+        <h2 style="font-size:24px">Preview</h2>
+        <div class="preview" id="preview">Add a scene to see the prompts AutoFlow will run.</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Built by <b>Ajay B J</b> · <a href="./">Ajay AutoFlow</a></span>
+      <span>Your storyboard is saved only in this browser.</span>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="planner.js"></script>
+</body>
+</html>
