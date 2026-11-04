@@ -1,0 +1,294 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ajay AutoFlow</title>
+  <link rel="icon" href="../icons/icon32.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="app">
+    <!-- ================= HEADER ================= -->
+    <header class="hero">
+      <div class="hero-row">
+        <div class="avatar-wrap"><img class="avatar" src="../assets/avatar.png" alt="Ajay logo" /></div>
+        <div class="hero-text">
+          <h1>Ajay <span>AutoFlow</span></h1>
+          <p>Batch videos &amp; images on Google Flow, auto-downloaded.</p>
+        </div>
+      </div>
+      <div class="social hidden" id="brandSocialHeader">
+        <a class="soc yt hidden" id="brandYouTubeHeader" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5A3 3 0 0 0 .5 6.2 31 31 0 0 0 0 12a31 31 0 0 0 .5 5.8 3 3 0 0 0 2.1 2.1c1.9.5 9.4.5 9.4.5s7.5 0 9.4-.5a3 3 0 0 0 2.1-2.1A31 31 0 0 0 24 12a31 31 0 0 0-.5-5.8zM9.6 15.6V8.4l6.3 3.6-6.3 3.6z"/></svg>
+          YouTube
+        </a>
+        <a class="soc fb hidden" id="brandFacebookHeader" target="_blank" rel="noopener noreferrer">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M13.7 23v-9.9H17l.5-3.8h-3.8V6.9c0-1.1.3-1.9 1.9-1.9h2V1.6c-.35-.04-1.55-.16-2.95-.16-2.93 0-4.93 1.79-4.93 5.07v2.82H6.4v3.8h3.32V23h3.98z"/></svg>
+          Facebook
+        </a>
+      </div>
+    </header>
+
+    <!-- ================= PAGE STATUS ================= -->
+    <div id="pageStatus" class="page-status off">
+      <span class="dot"></span><span id="pageStatusText">Checking Google Flow tab...</span>
+      <button id="openFlowBtn" class="btn tiny ghost hidden">Open Google Flow</button>
+    </div>
+
+    <!-- ================= TABS ================= -->
+    <nav class="tabs">
+      <button class="tab active" data-tab="control">Control</button>
+      <button class="tab" data-tab="settings">Settings</button>
+      <button class="tab" data-tab="logs">Logs <span id="logBadge" class="badge hidden">0</span></button>
+    </nav>
+
+    <!-- ================= CONTROL ================= -->
+    <section id="tab-control" class="tab-panel active">
+      <div class="card">
+        <div class="card-title">Mode</div>
+        <div class="modes" id="modes">
+          <button class="chip" data-mode="textToVideo"><b>Text</b> to Video</button>
+          <button class="chip" data-mode="imageToVideo"><b>Frame</b> to Video</button>
+          <button class="chip" data-mode="componentsToVideo"><b>Ingredients</b> to Video</button>
+          <button class="chip" data-mode="textToImage"><b>Text</b> to Image</button>
+          <button class="chip" data-mode="imageToImage"><b>Image</b> to Image</button>
+          <button class="chip" data-mode="agentAutomation"><b>Agent</b> Automation</button>
+        </div>
+        <p class="hint" id="modeHint"></p>
+        <div id="agentTypeRow" class="seg hidden">
+          <button class="seg-btn" data-agent="agentAutomationToImage">Create images</button>
+          <button class="seg-btn" data-agent="agentAutomationToVideo">Create videos</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Generation</div>
+        <div class="grid2">
+          <label class="field"><span>Aspect ratio</span>
+            <select id="q_aspectRatio" data-setting="aspectRatio">
+              <option value="16:9">16:9 YouTube</option>
+              <option value="9:16">9:16 Shorts / Reels</option>
+              <option value="square">Square</option>
+              <option value="portrait">Portrait</option>
+              <option value="landscape">Landscape</option>
+            </select>
+          </label>
+          <label class="field"><span>Outputs per prompt</span>
+            <select id="q_outputCount" data-setting="outputCount">
+              <option value="1">x1</option><option value="2">x2</option><option value="3">x3</option><option value="4">x4</option>
+            </select>
+          </label>
+          <label class="field video-only"><span>Video model</span>
+            <select id="q_model" data-setting="model">
+              <option value="Veo 3.1 - Lite">Veo 3.1 - Lite</option>
+              <option value="Veo 3.1 - Fast">Veo 3.1 - Fast</option>
+              <option value="Veo 3.1 - Quality">Veo 3.1 - Quality</option>
+              <option value="Omni 1.1 Flash">Omni 1.1 Flash (Omni Flash)</option>
+            </select>
+          </label>
+          <label class="field image-only"><span>Image model</span>
+            <select id="q_imageModel" data-setting="imageModel">
+              <option value="Nano Banana Pro">Nano Banana Pro</option>
+              <option value="Nano Banana 2.1">Nano Banana 2.1</option>
+              <option value="Nano Banana 2.1 Light">Nano Banana 2.1 Light</option>
+            </select>
+          </label>
+          <label class="field video-only"><span>Duration / chain</span>
+            <select id="q_defaultVideoOption" data-setting="defaultVideoOption">
+              <option value="4s">4s</option><option value="6s">6s</option><option value="8s">8s</option><option value="10s">10s</option>
+              <option value="4s-concat">4s + extend chain</option><option value="6s-concat">6s + extend chain</option>
+              <option value="8s-concat">8s + extend chain</option><option value="10s-concat">10s + extend chain</option>
+            </select>
+          </label>
+          <label class="field image-only"><span>Image option</span>
+            <select id="q_defaultImageOption" data-setting="defaultImageOption">
+              <option value="new-image">New image each prompt</option>
+              <option value="new-image-concat">Chain: edit previous image</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint" id="chainHint">Extend chain: each next prompt starts from the last frame / image of the previous one (runs one by one).</p>
+      </div>
+
+      <!-- images -->
+      <div class="card" id="imagesCard">
+        <div class="card-title">Images <span class="muted" id="imgCount"></span></div>
+        <label class="drop" id="dropZone">
+          <input type="file" id="imageInput" multiple accept="image/*" />
+          <span>Click or drop images here</span>
+          <small id="dropHint">Name files like the word in your prompt (e.g. <i>lion.png</i>) to auto-pick them.</small>
+        </label>
+        <div class="thumbs" id="thumbs"></div>
+        <div class="grid2">
+          <label class="field"><span>Max images per prompt</span>
+            <select id="maxImagesPerPrompt"></select>
+          </label>
+          <div class="field toggle-field">
+            <span>Auto pick by name</span>
+            <label class="switch"><input type="checkbox" id="autoAddCharacterImages" data-setting="autoAddCharacterImages" /><i></i></label>
+          </div>
+        </div>
+        <button class="btn tiny ghost" id="clearImagesBtn">Remove all images</button>
+      </div>
+
+      <!-- voice -->
+      <div class="card" id="voiceCard">
+        <div class="card-title">Voice (speaker)</div>
+        <div class="grid2">
+          <div class="field toggle-field">
+            <span>Auto voice by name in prompt</span>
+            <label class="switch"><input type="checkbox" id="autoAddVoiceBySpeaker" data-setting="autoAddVoiceBySpeaker" /><i></i></label>
+          </div>
+          <label class="field"><span>Default voice</span>
+            <select id="defaultSpeaker" data-setting="defaultSpeaker"></select>
+          </label>
+        </div>
+        <div class="row-gap">
+          <button class="btn tiny ghost" id="scanVoicesBtn">Sync voices from Flow</button>
+          <span class="muted small" id="voiceCount"></span>
+        </div>
+        <p class="hint">Voice is picked after the @character, so Character + Voice go together. "Sync" reads Flow's own voice library (incl. your custom voices).</p>
+      </div>
+
+      <!-- characters -->
+      <div class="card" id="charCard">
+        <div class="card-title">Characters</div>
+        <div class="grid2">
+          <div class="field toggle-field">
+            <span>Auto @character by name</span>
+            <label class="switch"><input type="checkbox" id="enableCharacterControl" data-setting="enableCharacterControl" /><i></i></label>
+          </div>
+          <button class="btn tiny ghost" id="scanCharsBtn">Scan characters from Flow</button>
+        </div>
+        <div class="char-list" id="charList"><span class="muted small">No characters scanned yet.</span></div>
+      </div>
+
+      <!-- prompts -->
+      <div class="card">
+        <div class="card-title">Prompts <span class="muted" id="promptCount">0</span></div>
+        <textarea id="prompts" rows="8" placeholder="Prompt 1...&#10;&#10;Prompt 2...&#10;&#10;(Leave one empty line between prompts. Start a prompt with #name to name the file.)"></textarea>
+        <div class="row-between">
+          <label class="file-btn">Import .txt<input type="file" id="txtInput" accept=".txt,text/plain" /></label>
+          <div class="range">
+            <span>Run</span>
+            <input type="number" id="rangeFrom" min="1" value="1" />
+            <span>to</span>
+            <input type="number" id="rangeTo" min="1" value="1" />
+          </div>
+        </div>
+        <div class="prompt-list" id="promptList"></div>
+      </div>
+
+      <div class="actions">
+        <button class="btn primary" id="startBtn">Start AutoFlow</button>
+        <button class="btn danger hidden" id="stopBtn">Stop</button>
+        <button class="btn ghost" id="clearBtn">Clear</button>
+      </div>
+
+      <div class="card" id="progressCard">
+        <div class="card-title">Queue</div>
+        <div id="queueEmpty" class="muted small">Nothing running.</div>
+        <div id="queueBox" class="hidden">
+          <div class="row-between small"><span id="queueStatus">-</span><span id="queueCount">0/0</span></div>
+          <div class="bar"><i id="queueBar"></i></div>
+          <div class="row-between small"><span id="currentLine" class="muted">-</span><span id="currentPct" class="muted"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SETTINGS ================= -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="card">
+        <div class="card-title">Ajay's social channels</div>
+        <p class="hint">Paste your own channel/page links. The YouTube and Facebook buttons appear automatically when a valid link is saved. No original creator links are included.</p>
+        <div class="brand-fields">
+          <label class="field"><span>Your YouTube channel URL</span><input id="brandYoutubeInput" data-setting="socialYouTubeUrl" type="url" placeholder="https://www.youtube.com/@YourChannel" /></label>
+          <p class="hint brand-feedback" id="youtubeLinkStatus"></p>
+          <label class="field"><span>Your Facebook page URL</span><input id="brandFacebookInput" data-setting="socialFacebookUrl" type="url" placeholder="https://www.facebook.com/YourPage" /></label>
+          <p class="hint brand-feedback" id="facebookLinkStatus"></p>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">Speed &amp; retries</div>
+        <div class="grid2">
+          <label class="field"><span>Prompts at the same time</span>
+            <select data-setting="concurrentPrompts"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select>
+          </label>
+          <label class="field"><span>Agent outputs per prompt</span>
+            <select data-setting="agentOutputCount"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+          </label>
+          <label class="field"><span>Delay min (sec)</span><input type="number" min="0" max="600" data-setting="promptDelaySecondsMin" /></label>
+          <label class="field"><span>Delay max (sec)</span><input type="number" min="0" max="600" data-setting="promptDelaySecondsMax" /></label>
+          <label class="field"><span>Max retries</span><input type="number" min="0" max="20" data-setting="maxRetries" /></label>
+          <div class="field toggle-field"><span>Zoom out Flow while running</span>
+            <label class="switch"><input type="checkbox" data-setting="zoomOutWhileRunning" /><i></i></label>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Auto download</div>
+        <div class="grid2">
+          <label class="field"><span>Video quality</span>
+            <select data-setting="autoDownloadVideoQuality">
+              <option value="no-download">No download</option><option value="720">720p (fast)</option><option value="1080">1080p (upscale)</option><option value="4k">4K (upscale)</option>
+            </select>
+          </label>
+          <label class="field"><span>Image quality</span>
+            <select data-setting="autoDownloadImageQuality">
+              <option value="no-download">No download</option><option value="1k">1K (fast)</option><option value="2k">2K (upscale)</option><option value="4k">4K (upscale)</option>
+            </select>
+          </label>
+          <label class="field"><span>Save to folder</span><input type="text" placeholder="e.g. ajay-autoflow" data-setting="folderName" /></label>
+          <div class="field toggle-field"><span>Auto rename files</span>
+            <label class="switch"><input type="checkbox" data-setting="autoChangeFileName" /><i></i></label>
+          </div>
+          <label class="field span2"><span>File naming</span>
+            <select data-setting="fileNamingSystem">
+              <option value="prompt_tag">Prompt Tag + time code (0-00.png, 0-04.mp4 from #tag)</option>
+              <option value="simple">Simple (1 image.png, 1 video.mp4, ...)</option>
+            </select>
+          </label>
+        </div>
+        <p class="hint">Files go into Downloads/&lt;folder&gt;. Turn OFF "Ask where to save each file" in Chrome so downloads run automatically.</p>
+        <button class="btn tiny ghost" id="openDlSettings">Open Chrome download settings</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Advanced: custom selectors</div>
+        <p class="hint">Only needed if Google changes the Flow interface. Paste JSON like {"submitButton": "..."} to override a selector.</p>
+        <textarea id="customSelectors" rows="5" placeholder='{ }'></textarea>
+        <div class="row-gap">
+          <button class="btn tiny ghost" id="saveSelectors">Save selectors</button>
+          <button class="btn tiny ghost" id="resetSelectors">Clear</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn ghost" id="resetSettings">Reset all settings</button>
+      </div>
+      <p class="hint center" id="savedNote">Settings save automatically.</p>
+    </section>
+
+    <!-- ================= LOGS ================= -->
+    <section id="tab-logs" class="tab-panel">
+      <div class="row-gap">
+        <button class="btn tiny ghost" id="copyLogs">Copy logs</button>
+        <button class="btn tiny ghost" id="clearLogs">Clear</button>
+      </div>
+      <div class="logs" id="logs"></div>
+    </section>
+
+    <footer class="foot">
+      <img src="../assets/avatar.png" alt="" class="mini-avatar" />
+      <span>Ajay AutoFlow <b>by Ajay</b></span>
+      <a id="brandYouTubeFooter" class="hidden" target="_blank" rel="noopener noreferrer">YouTube</a>
+      <a id="brandFacebookFooter" class="hidden" target="_blank" rel="noopener noreferrer">Facebook</a>
+    </footer>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+  <script src="app.js"></script>
+</body>
+</html>
