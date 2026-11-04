@@ -1,0 +1,8 @@
+node_modules/
+.env*
+.vercel/
+*.keystore
+*.pem
+*.log
+.DS_Store
+Thumbs.db
